@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="warranty_action" model="ir.actions.act_window">
+        <field name="name">Warranty</field>
+        <field name="res_model">warranty.property</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+<!--    sequence number-->
+
+    <record id="sequence_self_service" model="ir.sequence">
+        <field name="name">Warranty</field>
+        <field name="code">self.service</field>
+        <field name="active">TRUE</field>
+        <field name="prefix">WA</field>
+        <field name="padding">6</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+    </record>
+
+
+<!--    form view-->
+
+     <record id="warranty_property_form" model="ir.ui.view">
+        <field name="name">warranty.property.form</field>
+        <field name="model">warranty.property</field>
+        <field name="arch" type="xml">
+            <form string="Warranty">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,to approve,approved,cancel"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="sequence_number"/>
+                            <field name="invoice_id" domain="[('state', '=',
+                            'posted')]"/>
+                            <field name="product_id"/>
+                            <field name="lot_id"/>
+                        </group>
+                        <group>
+                            <field name="request_date"/>
+                            <field name="customer_id"
+                                widget="res_partner_many2one"
+                                context="{'show_address': 1}"
+                                options='{"always_reload": True}'/>
+                            <field name="purchase_date"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+<!--inherit product-->
+
+    <record id="product_template_only_form_view_inherit" model="ir.ui.view">
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_policy']" position ='after'>
+                <field name = "warranty_period"/>
+                <field name = "warranty_type"/>
+            </xpath>
+
+            <xpath expr="//field[@name='warranty_period']" position="attributes">
+                <attribute name="attrs">
+                    {'invisible': [('has_warranty','=',False)]}</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='warranty_type']" position="attributes">
+                <attribute name="attrs">
+                    {'invisible': [('has_warranty','=',False)]}</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='purchase_ok']" position='after'>
+<!--                <group>-->
+                    <label name="Warranty" for="has_warranty"/>
+                    <field name ="has_warranty"/>
+<!--                </group>-->
+            </xpath>
+        </field>
+    </record>
+
+
+<!--tree view-->
+
+    <record id="warranty_property_tree" model="ir.ui.view">
+        <field name="name">warranty.property.tree</field>
+        <field name="model">warranty.property</field>
+        <field name="arch" type="xml">
+            <tree string="WarrantyTree">
+                <field name="sequence_number"/>
+                <field name="invoice_id"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="request_date"/>
+                <field name="customer_id"/>
+                <field name="purchase_date"/>
+            </tree>
+        </field>
+    </record>
+
+
+
+</odoo>
