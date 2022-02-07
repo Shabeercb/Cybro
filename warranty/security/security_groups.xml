@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<odoo>
+    <record model="ir.module.category" id="module_category_warranty">
+        <field name="name">Warranty</field>
+     </record>
+
+    <record id="warranty_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="category_id" ref="module_category_warranty"/>
+    </record>
+
+    <record id="warranty_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="category_id" ref="module_category_warranty"/>
+        <field name="implied_ids" eval="[(4, ref('warranty_user'))]"/>
+    </record>
+
+
+
+
+
+
+
+
+
+</odoo>

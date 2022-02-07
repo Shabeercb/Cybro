@@ -28,17 +28,37 @@
         <field name="arch" type="xml">
             <form string="Warranty">
                 <header>
+                    <button id="button_submit" name="action_submit"
+                            string="Submit" type="object" class="oe_highlight"
+                            states = "draft"/>
+                    <button id="button_to_approve" name="action_to_approve"
+                            string="Approve" type="object" class="oe_highlight"
+                            attrs="{'invisible': [('state', 'not in',
+                            ['to approve'])]}"/>
+                    <button id="button_move_to_draft"
+                            name="action_move_to_draft" type="object"
+                            string="Move to Draft" class="oe_highlight"
+                            attrs="{'invisible': [('state', 'in', ['draft'])]}"/>
+                    <button id="button_cancel" name="action_cancel"
+                            string="Cancel" type="object"/>
+
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,to approve,approved,cancel"/>
                 </header>
                 <sheet>
                     <group>
+                            <div class="oe_title">
+                               <h1><field name="sequence_number"/></h1>
+                            </div>
+                    </group>
+                    <group>
                         <group>
-                            <field name="sequence_number"/>
-                            <field name="invoice_id" domain="[('state', '=',
-                            'posted')]"/>
+                            <field name="invoice_id"
+                                   domain="[('state', '=', 'posted')]"/>
                             <field name="product_id"/>
-                            <field name="lot_id"/>
+                            <field name="lot_id"
+                                   domain="[('product_id', 'in',
+                                   'stock.lot')]"/>
                         </group>
                         <group>
                             <field name="request_date"/>
@@ -47,6 +67,7 @@
                                 context="{'show_address': 1}"
                                 options='{"always_reload": True}'/>
                             <field name="purchase_date"/>
+                            <field name="warranty_expire_date"/>
                         </group>
                     </group>
                 </sheet>
@@ -59,14 +80,15 @@
 
     <record id="product_template_only_form_view_inherit" model="ir.ui.view">
         <field name="model">product.template</field>
-        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='invoice_policy']" position ='after'>
                 <field name = "warranty_period"/>
                 <field name = "warranty_type"/>
             </xpath>
 
-            <xpath expr="//field[@name='warranty_period']" position="attributes">
+            <xpath expr="//field[@name='warranty_period']"
+                   position="attributes">
                 <attribute name="attrs">
                     {'invisible': [('has_warranty','=',False)]}</attribute>
             </xpath>
@@ -76,11 +98,11 @@
                     {'invisible': [('has_warranty','=',False)]}</attribute>
             </xpath>
 
-            <xpath expr="//field[@name='purchase_ok']" position='after'>
-<!--                <group>-->
-                    <label name="Warranty" for="has_warranty"/>
+            <xpath expr="//field[@name='sale_ok']" position='before'>
+                <group>
+<!--                    <label name="Warranty" for="has_warranty"/>-->
                     <field name ="has_warranty"/>
-<!--                </group>-->
+                </group>
             </xpath>
         </field>
     </record>
@@ -100,6 +122,8 @@
                 <field name="request_date"/>
                 <field name="customer_id"/>
                 <field name="purchase_date"/>
+                <field name="warranty_expire_date"/>
+                <field name="state"/>
             </tree>
         </field>
     </record>
