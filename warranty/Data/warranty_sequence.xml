@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<odoo>
+    <!--    sequence number-->
+    <data noupdate="1">
+        <record id="sequence_self_service" model="ir.sequence">
+            <field name="name">Warranty</field>
+            <field name="code">self.service</field>
+            <field name="active">TRUE</field>
+            <field name="prefix">WA</field>
+            <field name="padding">6</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+    </data>
+
+
+</odoo>

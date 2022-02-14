@@ -1,22 +1,10 @@
 <?xml version="1.0"?>
 <odoo>
+
     <record id="warranty_action" model="ir.actions.act_window">
         <field name="name">Warranty</field>
         <field name="res_model">warranty.property</field>
         <field name="view_mode">tree,form</field>
-    </record>
-
-
-<!--    sequence number-->
-
-    <record id="sequence_self_service" model="ir.sequence">
-        <field name="name">Warranty</field>
-        <field name="code">self.service</field>
-        <field name="active">TRUE</field>
-        <field name="prefix">WA</field>
-        <field name="padding">6</field>
-        <field name="number_next">1</field>
-        <field name="number_increment">1</field>
     </record>
 
 
@@ -30,42 +18,70 @@
                 <header>
                     <button id="button_submit" name="action_submit"
                             string="Submit" type="object" class="oe_highlight"
-                            states = "draft"/>
+                            states = "draft" groups="warranty.warranty_user,
+                            warranty.warranty_manager"
+                            context="{'turn_view_readonly':True}"/>
                     <button id="button_to_approve" name="action_to_approve"
                             string="Approve" type="object" class="oe_highlight"
                             attrs="{'invisible': [('state', 'not in',
-                            ['to approve'])]}"/>
-                    <button id="button_move_to_draft"
-                            name="action_move_to_draft" type="object"
-                            string="Move to Draft" class="oe_highlight"
-                            attrs="{'invisible': [('state', 'in', ['draft'])]}"/>
+                            ['to approve'])]}"
+                            groups="warranty.warranty_manager"/>
+                    <button id="button_move_to_draft" type="object"
+                            name="action_move_to_draft" class="oe_highlight"
+                            string="Move to Draft" attrs="{'invisible':
+                            [('state', 'in', ['draft'])]}"/>
+                    <button id="button_to_return_product"
+                            name="action_to_return_product"
+                            string="Return Product" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', 'not in',
+                            ['product received'])]}"
+                            groups="warranty.warranty_manager"/>
                     <button id="button_cancel" name="action_cancel"
                             string="Cancel" type="object"/>
 
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,to approve,approved,cancel"/>
+                           statusbar_visible="draft,to approve,approved,product received,done,cancel"/>
                 </header>
                 <sheet>
+                     <div class="oe_button_box" name="button_box">
+                         <button string="Stock Move" name="action_stock_move"
+                                 class="oe_stat_button" icon="fa-exchange"
+                                 type="object"
+                                 attrs="{'invisible':[('state', '!=',
+                                 'product received')]}">
+                         </button>
+                     </div>
                     <group>
-                            <div class="oe_title">
-                               <h1><field name="sequence_number"/></h1>
-                            </div>
+                        <div class="oe_title">
+                            <h1><field name="sequence_number"/></h1>
+                        </div>
                     </group>
                     <group>
                         <group>
                             <field name="invoice_id"
-                                   domain="[('state', '=', 'posted')]"/>
-                            <field name="product_id"/>
+                                   domain="[('state', '=', 'posted')]"
+                                   attrs="{'readonly':[('state', '!=',
+                                   'draft')]}"/>
+                            <field name="product_id"
+                                   attrs="{'readonly':[('state', '!=',
+                                   'draft')]}"/>
                             <field name="lot_id"
                                    domain="[('product_id', 'in',
-                                   'stock.lot')]"/>
+                                   'stock.lot')]"
+                                   attrs="{'readonly':[('state', '!=',
+                                   'draft')]}"/>
                         </group>
                         <group>
-                            <field name="request_date"/>
+                            <field name="request_date"
+                                   attrs="{'readonly':[('state', '!=',
+                                   'draft')]}"/>
                             <field name="customer_id"
-                                widget="res_partner_many2one"
-                                context="{'show_address': 1}"
-                                options='{"always_reload": True}'/>
+                                   widget="res_partner_many2one"
+                                   context="{'show_address': 1}"
+                                   options='{"always_reload": True}'
+                                   attrs="{'readonly':[('state', '!=',
+                                   'draft')]}"/>
                             <field name="purchase_date"/>
                             <field name="warranty_expire_date"/>
                         </group>
@@ -78,7 +94,7 @@
 
 <!--inherit product-->
 
-    <record id="product_template_only_form_view_inherit" model="ir.ui.view">
+    <record id="product_template_form_view_inherit" model="ir.ui.view">
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_form_view"/>
         <field name="arch" type="xml">
@@ -128,6 +144,18 @@
         </field>
     </record>
 
+<!--    inherit invoice-->
 
+    <record id="account_move_form_view_inherit" model="ir.ui.view">
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='other_info']" position ='after'>
+               <page string="Warranty Info">
+                   <field name="warranty_info_lines_ids"/>
+               </page>
+            </xpath>
+        </field>
+    </record>
 
 </odoo>

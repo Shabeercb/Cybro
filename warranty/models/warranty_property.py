@@ -1,5 +1,5 @@
 from odoo import fields, models, api
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 
 class Warranty(models.Model):
@@ -9,7 +9,8 @@ class Warranty(models.Model):
 
     sequence_number = fields.Char(readonly=True, required=True, copy=False,
                                   default='New')
-    invoice_id = fields.Many2one('account.move', string="Invoice")
+    invoice_id = fields.Many2one('account.move', string="Invoice",
+                                 required=True)
     product_id = fields.Many2one('product.product', string="Product")
     lot_id = fields.Many2one('stock.lot', string='Lot/Sl.No')
     request_date = fields.Date()
@@ -22,8 +23,14 @@ class Warranty(models.Model):
                              selection=[('draft', 'Draft'),
                                         ('to approve', 'To Approve'),
                                         ('approved', 'Approved'),
-                                        ('cancel', 'Cancel')],
+                                        ('product received', 'Product Received'),
+                                        ('done', 'Done'), ('cancel', 'Cancel'),
+                                        ],
                              required="TRUE", default='draft')
+    stock_move_id = fields.Many2one('stock.move', string='Stock Move')
+    warranty_info_id = fields.Many2one('account.move', string='Warranty Info Id')
+
+    # sequence_number
 
     @api.model
     def create(self, vals):
@@ -33,11 +40,15 @@ class Warranty(models.Model):
             result = super(Warranty, self).create(vals)
         return result
 
+    # invoice_id
+
     @api.onchange('invoice_id')
     def onchange_invoice_id(self):
         # print(self)
         product_ids = self.invoice_id.invoice_line_ids.product_id.ids
         return {'domain': {'product_id': [('id', 'in', product_ids)]}}
+
+    # warranty_expire_date
 
     @api.depends('purchase_date', 'product_id', 'product_id.warranty_period')
     def _compute_warranty_expire_date(self):
@@ -49,26 +60,135 @@ class Warranty(models.Model):
                 rec.warranty_expire_date = rec.purchase_date + timedelta(
                      days=int(rec.product_id.warranty_period))
 
+    # button submit
+
     def action_submit(self):
         self.state = "to approve"
+        # self.env['account.move'].create({
+        #     'warranty_info_lines_ids': [(4, )]})
+
+    # button_cancel
 
     def action_cancel(self):
         self.state = "cancel"
 
+    # button_to_approve, stock_move
+
     def action_to_approve(self):
-        self.state = "approved"
+        self.state = 'product received'
+        # # print(self.product_id.warranty_type)
+        # print(self.product_id.uom_id.id)
+        if self.product_id.warranty_type == "type_2":
+            stock_move = self.env['stock.move'].create({
+                'origin': self.sequence_number,
+                'name': 'Warranty Replacement',
+                'date': self.request_date,
+                'product_id': self.product_id.id,
+                'location_id':
+                    self.env.ref('stock.stock_location_customers').id,
+                'location_dest_id':
+                    self.env.ref('warranty.warranty_storage_location').id,
+                'company_id': self.env.user.company_id.id,
+                'product_uom_qty': '1',
+                'product_uom': self.product_id.uom_id.id,
+                'procure_method': 'make_to_order',
+            })
+            result = stock_move
+            self.stock_move_id = stock_move.id
+            return result
+
+        elif self.product_id.warranty_type == "type_1":
+            return self.env['stock.move'].create({
+                'origin': self.sequence_number,
+                'name': 'Warranty Service',
+                'date': self.request_date,
+                'product_id': self.product_id.id,
+                'location_id':
+                    self.env.ref('warranty.warranty_storage_location').id,
+                'location_dest_id':
+                    self.env.ref('stock.stock_location_customers').id,
+                'company_id': self.env.user.company_id.id,
+                'product_uom_qty': '1',
+                'product_uom': self.product_id.uom_id.id,
+                'procure_method': 'make_to_order',
+            })
+
+    # button_return_product
+
+    def action_to_return_product(self):
+        self.state = 'done'
+        if self.product_id.warranty_type == "type_2":
+            return self.env['stock.move'].create({
+                'origin': self.sequence_number,
+                'name': 'Warranty Replacement Return',
+                'date': self.request_date,
+                'product_id': self.product_id.id,
+                'location_id':
+                    self.env.ref('warranty.warranty_storage_location').id,
+                'location_dest_id':
+                    self.env.ref('stock.stock_location_customers').id,
+                'company_id': self.env.user.company_id.id,
+                'product_uom_qty': '1',
+                'product_uom': self.product_id.uom_id.id,
+                'procure_method': 'make_to_order',
+            })
+
+        elif self.product_id.warranty_type == "type_1":
+            return self.env['stock.move'].create({
+                'origin': self.sequence_number,
+                'name': 'Warranty Service Return',
+                'date': self.request_date,
+                'product_id': self.product_id.id,
+                'location_id':
+                    self.env.ref('stock.stock_location_customers').id,
+                'location_dest_id':
+                    self.env.ref('warranty.warranty_storage_location').id,
+                'company_id': self.env.user.company_id.id,
+                'product_uom_qty': '1',
+                'product_uom': self.product_id.uom_id.id,
+                'procure_method': 'make_to_order',
+            })
+
+    # button_move_to_draft
 
     def action_move_to_draft(self):
         self.state = "draft"
+
+    # smart_button
+
+    def action_stock_move(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Stock Move',
+            'view_mode': 'form',
+            'view_type': 'form',
+            'res_model': 'stock.move',
+            'res_id': self.stock_move_id.id,
+            'domain': [('origin', '=', self.sequence_number)],
+            'context': "{'create': False}"
+        }
 
 
 class InventoryInherit(models.Model):
     _inherit = "product.template"
 
     warranty_period = fields.Float()
-    warranty_type = fields.Selection(string="Warranty Type",
-                                     selection=[('type_1', '1.Service Warranty'),
-                                                ('type_2', '2.Replacement '
-                                                           'warranty')])
+    warranty_type = fields.Selection(
+        string="Warranty Type",
+        selection=[('type_1', '1.Service Warranty'),
+                   ('type_2', '2.Replacement ' 'warranty')])
     has_warranty = fields.Boolean(string="Has Warranty")
 
+
+class InvoiceInherit(models.Model):
+    _inherit = "account.move"
+
+    warranty_info_lines_ids = fields.One2many('warranty.property',
+                                              'invoice_id',
+                                              string='Warranty Info')
+
+
+class StockMoveInherit(models.Model):
+    _inherit = "stock.move"
+
+    stock_move = fields.Char(string="Stock Move")
