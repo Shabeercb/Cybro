@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="hr_employee_transfer_action" model="ir.actions.act_window">
+        <field name="name">Transfer</field>
+        <field name="res_model">employee.transfer</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <menuitem id="hr_employee_transfer_menu_root"
+              name="Transfer"
+              action="hr_employee_transfer_action"
+              parent="hr.menu_hr_root"/>
+
+
+    <record id="hr_employee_transfer_view_form" model="ir.ui.view">
+        <field name="name">employee.transfer.form</field>
+        <field name="model">employee.transfer</field>
+        <field name="arch" type="xml">
+            <form string="Transfer">
+                <header>
+                    <button id="button_confirm" name="action_confirm"
+                            string="Confirm" type="object" class="oe_highlight"
+                            states = "draft"/>
+                    <button id="button_approve" name="action_approve"
+                            string="Approve" type="object" class="oe_highlight"
+                            attrs="{'invisible':
+                            ['|', ('state', 'not in', ['to approve']),
+                            ('transfer_to_id', '=', ['company.id'])]}"
+                            groups="warranty.warranty_manager"
+                    />
+                    <button id="button_move_to_draft" type="object"
+                            name="action_move_to_draft" class="oe_highlight"
+                            string="Move to Draft" attrs="{'invisible':
+                            [('state', 'in', ['draft'])]}"/>
+                    <button id="button_cancel" name="action_cancel"
+                            string="Cancel" type="object"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,to approve,approved,cancel"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived"
+                            bg_color="bg-danger"
+                            attrs="{'invisible': [('active', '=', True)]}"/>
+                    <field name="active" invisible="1"/>
+                    <group>
+                        <div class="oe_title">
+                            <h1><field name="sequence_number"/></h1>
+                        </div>
+                    </group>
+                    <group>
+                        <field name="employee_id"/>
+                        <field name="current_company"/>
+                        <field name="transfer_to_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_employee_transfer_view_tree" model="ir.ui.view">
+        <field name="name">employee.transfer.tree</field>
+        <field name="model">employee.transfer</field>
+        <field name="arch" type="xml">
+            <tree string="Transfer">
+                <field name="sequence_number"/>
+                <field name="employee_id"/>
+                <field name="current_company"/>
+                <field name="transfer_to_id"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="hr_employee_transfer_search" model="ir.ui.view">
+        <field name="name">Archive Search</field>
+        <field name="model">employee.transfer</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+
+</odoo>

@@ -4,6 +4,8 @@
                 'stock',
                 'account',
                 'sale_management',
+                'hr',
+                'point_of_sale',
                 ],
 
     'application': True,
@@ -13,7 +15,14 @@
         'view/warranty_property_views.xml',
         'Data/warranty_sequence.xml',
         'Data/warranty_storage_location.xml',
+        'view/discount_limit.xml',
+        'view/hr_shift_views.xml',
+        'view/employee_transfer_view.xml',
+        # 'view/import_order_line_view.xml',
+        'view/sale_order_from_pos_view.xml',
+        'Data/employee_transfer_sequence.xml',
+        'security/Employee_tra_group.xml',
         'view/warranty_menu.xml',
-
-    ]
+        'view/hr_shift_menu.xml',
+    ],
 }

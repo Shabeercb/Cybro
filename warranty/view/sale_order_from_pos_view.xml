@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="sale_order_from_pos_view_inherit" model="ir.ui.view">
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+             <header>
+                <button id="button_pay" name="action_pay"
+                        string="Pay at The Counter" type="object"/>
+             </header>
+            <xpath expr="//group[@name='sale_reporting']" position ='before'>
+                <group name="pos_sale" string="POS Sale">
+                    <field name="pos_session_id"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+
+
+</odoo>

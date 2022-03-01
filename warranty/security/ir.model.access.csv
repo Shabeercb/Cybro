@@ -2,3 +2,7 @@ id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
 access_warranty_property,access_warranty_property,model_warranty_property,base.group_user,1,1,1,1
 access_warranty_user,access_warranty_user,model_warranty_property,warranty_user,1,1,1,1
 access_warranty_manager,access_warranty_manager,model_warranty_property,warranty_manager,1,1,1,1
+access_hr_shift,access_hr_shift,model_hr_shift,,1,1,1,1
+access_employee_transfer,access_employee_transfer,model_employee_transfer,,1,1,1,1
+access_import_order,access_import_order,model_import_order,,1,1,1,1
+access_payment_wizard,access_payment_wizard,model_payment_wizard,,1,1,1,1

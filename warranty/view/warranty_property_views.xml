@@ -7,7 +7,6 @@
         <field name="view_mode">tree,form</field>
     </record>
 
-
 <!--    form view-->
 
      <record id="warranty_property_form" model="ir.ui.view">
@@ -18,18 +17,24 @@
                 <header>
                     <button id="button_submit" name="action_submit"
                             string="Submit" type="object" class="oe_highlight"
-                            states = "draft" groups="warranty.warranty_user,
-                            warranty.warranty_manager"
+                            states = "draft"
                             context="{'turn_view_readonly':True}"/>
+                    
                     <button id="button_to_approve" name="action_to_approve"
                             string="Approve" type="object" class="oe_highlight"
                             attrs="{'invisible': [('state', 'not in',
-                            ['to approve'])]}"
-                            groups="warranty.warranty_manager"/>
+                            ['to approve'])]}"/>
+
+                    <button id="button_invoice" name="action_create_invoice"
+                            string="Create Invoice" type="object"
+                            attrs="{'invisible': [('state', 'not in',
+                            ['to approve'])]}"/>
+
                     <button id="button_move_to_draft" type="object"
-                            name="action_move_to_draft" class="oe_highlight"
+                            name="action_move_to_draft"
                             string="Move to Draft" attrs="{'invisible':
                             [('state', 'in', ['draft'])]}"/>
+
                     <button id="button_to_return_product"
                             name="action_to_return_product"
                             string="Return Product" type="object"
@@ -37,26 +42,36 @@
                             attrs="{'invisible': [('state', 'not in',
                             ['product received'])]}"
                             groups="warranty.warranty_manager"/>
+
                     <button id="button_cancel" name="action_cancel"
                             string="Cancel" type="object"/>
 
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,to approve,approved,product received,done,cancel"/>
+                           statusbar_visible="draft,to approve,approved,product received, done, cancel"/>
                 </header>
+
                 <sheet>
-                     <div class="oe_button_box" name="button_box">
-                         <button string="Stock Move" name="action_stock_move"
-                                 class="oe_stat_button" icon="fa-exchange"
-                                 type="object"
-                                 attrs="{'invisible':[('state', '!=',
-                                 'product received')]}">
-                         </button>
-                     </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button string="Stock Move" name="action_stock_move"
+                                class="oe_stat_button" icon="fa-exchange"
+                                type="object"
+                                attrs="{'invisible':[('state', '!=',
+                                'product received')]}">
+                        </button>
+                        <button string="Invoice" name="action_invoice"
+                                class="oe_stat_button" icon="fa-pencil-square-o"
+                                type="object"
+                                attrs="{'invisible':[('state', 'in',
+                                ['draft'])]}">
+                        </button>
+                    </div>
+
                     <group>
                         <div class="oe_title">
                             <h1><field name="sequence_number"/></h1>
                         </div>
                     </group>
+
                     <group>
                         <group>
                             <field name="invoice_id"
@@ -72,6 +87,7 @@
                                    attrs="{'readonly':[('state', '!=',
                                    'draft')]}"/>
                         </group>
+
                         <group>
                             <field name="request_date"
                                    attrs="{'readonly':[('state', '!=',
@@ -91,6 +107,31 @@
         </field>
     </record>
 
+<!--    search view-->
+
+     <record id="warranty_property_search" model="ir.ui.view">
+        <field name="name">warranty.property.search</field>
+        <field name="model">warranty.property</field>
+        <field name="arch" type="xml">
+            <search string="Warranty">
+                <field name="product_id"/>
+                <field name="customer_id"/>
+                <field name="request_date"/>
+
+                <filter string="Approved" name="approved"
+                        domain="[('state', '=', 'approved')]"/>
+                <separator/>
+                <filter string="Done" name="done"
+                        domain="[('state', '=', 'done')]"/>
+                <group expand="1" string="Group By">
+                    <filter string="Product" name="product_id"
+                            context="{'group_by':'product_id'}"/>
+                    <filter string="Request Date" name="request_date"
+                            context="{'group_by':'request_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
 
 <!--inherit product-->
 
@@ -114,15 +155,14 @@
                     {'invisible': [('has_warranty','=',False)]}</attribute>
             </xpath>
 
-            <xpath expr="//field[@name='sale_ok']" position='before'>
-                <group>
-<!--                    <label name="Warranty" for="has_warranty"/>-->
-                    <field name ="has_warranty"/>
-                </group>
+            <xpath expr="//span[@class='d-inline-block']" position='after'>
+                <span class="d-inline-block">
+                    <field name="has_warranty" modifiers="{}"/>
+                    <label for="has_warranty" name="Has Warranty"/>
+                </span>
             </xpath>
         </field>
     </record>
-
 
 <!--tree view-->
 
@@ -156,6 +196,12 @@
                </page>
             </xpath>
         </field>
+    </record>
+
+    <record id="employee_shift_action" model="ir.actions.act_window">
+        <field name="name">Shifts</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
 </odoo>

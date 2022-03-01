@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+
+<odoo>
+    <record id="order_line_form" model="ir.ui.view">
+        <field name="name">import.order.form</field>
+        <field name="model">import.order</field>
+        <field name="arch" type="xml">
+            <form string="Import Order Line">
+<!--                <field name="name"/>-->
+<!--                <field name="browse_file"/>-->
+                <sheet>
+                    <field name="data" filename="file_name"/>
+<!--                    <field name="name" invisible="1"/>-->
+                    <button name="action_import_popup" id="button_import"
+                            string="Import" type="object"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="sale_order_form_view_inherit" model="ir.ui.view">
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <header>
+                <button id="button_import" name="action_import"
+                        string="Import" type="object"/>
+            </header>
+        </field>
+    </record>
+
+
+</odoo>
